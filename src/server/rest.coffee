@@ -62,26 +62,6 @@ pump = (req, callback) ->
   req.on 'data', (chunk) -> data += chunk
   req.on 'end', () -> callback(data)
 
-# match a doc path by its url
-# For example:
-#   > matchDocName '/doc/testdocument'
-#   'testdocument'
-#   > matchDocName '/doc/testdocument/hello'
-#   undefined
-#   > matchDocName '/document/test'
-#   undefined
-#   > matchDocName '/hello_world'
-#   undefined
-matchDocName = (urlString, base) ->
-  if !nameregexes[base]?
-    base ?= ""
-    base = base[...-1] if base[base.length - 1] == "/"
-    nameregexes[base] = new RegExp("^#{base}\/doc\/(?:([^\/]+?))\/?$", "i")
-
-  urlParts = url.parse urlString
-  parts = urlParts.pathname.match nameregexes[base]
-  return parts[1] if parts
-
 # prepare data for createClient. If createClient success, then we pass client
 # together with req and res into the callback. Otherwise, stop the flow right
 # here and send error back
@@ -120,6 +100,10 @@ getDocument = (req, res, client) ->
         sendError res, error, true
       else
         sendError res, error
+
+getOperations = (req, res, client) ->
+  client.getOps req.params.name, 0, null, (error, ops) ->
+    send200 res, JSON.stringify ops
 
 # Put is used to create a document. The contents are a JSON object with {type:TYPENAME, meta:{...}}
 putDocument = (req, res, client) ->
@@ -164,22 +148,35 @@ deleteDocument = (req, res, client) ->
     else
       send200 res
 
+routes = [
+  {method: 'GET',    pattern: new RegExp("^/doc/(?:([^/]+?))/?$"),            func: getDocument},
+  {method: 'HEAD',   pattern: new RegExp("^/doc/(?:([^/]+?))/?$"),            func: getDocument},
+  {method: 'PUT',    pattern: new RegExp("^/doc/(?:([^/]+?))/?$"),            func: putDocument},
+  {method: 'POST',   pattern: new RegExp("^/doc/(?:([^/]+?))/?$"),            func: postDocument},
+  {method: 'DELETE', pattern: new RegExp("^/doc/(?:([^/]+?))/?$"),            func: deleteDocument},
+  {method: 'GET',    pattern: new RegExp("^/doc/(?:([^/]+?))/operations/?$"), func: getOperations}
+]
+
 # create a http request handler that is capable of routing request to the
 # correct functions
 # After getting the document name, `req` will have params which contain name of
 # the document
 makeDispatchHandler = (createClient, options) ->
   (req, res, next) ->
-    if name = matchDocName(req.url, options.base)
-      req.params or= {}
-      req.params.name = name
-      switch req.method
-        when 'GET', 'HEAD' then auth req, res, createClient, getDocument
-        when 'PUT' then auth req, res, createClient, putDocument
-        when 'POST' then auth req, res, createClient, postDocument
-        when 'DELETE' then auth req, res, createClient, deleteDocument
-        else next()
-    else
+    urlParts = url.parse req.url
+    pathname = urlParts.pathname.replace options.base, ""
+    console.log "Dispatching URL:", pathname
+    matched = false
+    for route in routes
+      if req.method == route.method and match = pathname.match route.pattern
+        console.log " Found match:", match
+        req.params or= {}
+        req.params.name = match[1]
+        auth req, res, createClient, route.func
+        matched = true
+      else
+        console.log " No match for:", route.pattern
+    if not matched
       next()
 
 module.exports = makeDispatchHandler
