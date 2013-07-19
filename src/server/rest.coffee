@@ -165,17 +165,13 @@ makeDispatchHandler = (createClient, options) ->
   (req, res, next) ->
     urlParts = url.parse req.url
     pathname = urlParts.pathname.replace options.base, ""
-    console.log "Dispatching URL:", pathname
     matched = false
     for route in routes
       if req.method == route.method and match = pathname.match route.pattern
-        console.log " Found match:", match
         req.params or= {}
         req.params.name = match[1]
         auth req, res, createClient, route.func
         matched = true
-      else
-        console.log " No match for:", route.pattern
     if not matched
       next()
 
