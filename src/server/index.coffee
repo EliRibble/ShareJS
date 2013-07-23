@@ -10,12 +10,16 @@ rest = require './rest'
 browserChannel = require './browserchannel'
 sockjs = require './sockjs'
 websocket = require './websocket'
+session = require './session'
 
 # Create an HTTP server and attach whatever frontends are specified in the options.
 #
 # The model will be created based on options if it is not specified.
 module.exports = create = (options, model = createModel(options)) ->
   attach(connect(), options, model)
+
+create.bind = bind = (signal, callback) ->
+  session.bind signal, callback
 
 # Create an OT document model attached to a database.
 create.createModel = createModel = (options) ->

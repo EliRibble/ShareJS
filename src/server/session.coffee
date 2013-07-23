@@ -29,6 +29,16 @@ syncQueue = require './syncqueue'
 # Time (in ms) that the server will wait for an auth message from the client before closing the connection
 AUTH_TIMEOUT = 10000
 
+handlers = {
+  connected: [],
+  opened: [],
+  disconnected: [],
+}
+
+exports.bind = (signal, callback) ->
+  #console.log "Adding session signal handler", signal
+  handlers[signal].push callback
+
 # session should implement the following interface:
 #   headers
 #   address
@@ -270,6 +280,7 @@ exports.handler = (session, createAgent) ->
           msg.open = true
           msg.v = version
           callback()
+          callback docName, docData for callback in handlers['opened']
 
       # Technically, we don't need a snapshot if the user called create but not open or createSnapshot,
       # but no clients do that yet anyway.
@@ -337,6 +348,8 @@ exports.handler = (session, createAgent) ->
             failAuthentication(error)
           else
             agent = agent_
+            console.log "Client #{agent.sessionId} connected"
+            callback agent for callback in handlers['connected']
             session.send auth:agent.sessionId
 
           # Ok. Now we can handle all the messages in the buffer. They'll go straight to
@@ -350,7 +363,8 @@ exports.handler = (session, createAgent) ->
 
     session.on 'close', ->
       return unless agent
-      #console.log "Client #{agent.sessionId} disconnected"
+      console.log "Client #{agent.sessionId} disconnected"
+      callback agent for callback in handlers['disconnected']
       for docName, {listener} of docState
         agent.removeListener docName if listener
       docState = null
