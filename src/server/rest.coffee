@@ -39,9 +39,12 @@ send400 = (res, message) ->
   res.writeHead 400, {'Content-Type': 'text/plain'}
   res.end message
 
-send200 = (res, message = "OK\n", contentType = "text/plain") ->
+send200 = (req, res, message = "OK\n", contentType = "text/plain") ->
   headers = {'Content-Type': contentType}
-  headers['Access-Control-Allow-Origin'] = accessControlAllowOrigin if accessControlAllowOrigin != null
+  if accessControlAllowOrigin == '*'
+    headers['Access-Control-Allow-Origin'] = req.headers.origin
+  else
+    headers['Access-Control-Allow-Origin'] = accessControlAllowOrigin if accessControlAllowOrigin != null
   res.writeHead 200, headers
   res.end message
 
@@ -94,12 +97,12 @@ getDocument = (req, res, client) ->
       res.setHeader 'X-OT-Type', doc.type.name
       res.setHeader 'X-OT-Version', doc.v
       if req.method == "HEAD"
-        send200 res, ""
+        send200 req, res, ""
       else
         if typeof doc.snapshot == 'string'
-          send200 res, doc.snapshot
+          send200 req, res, doc.snapshot
         else
-          sendJSON res, doc.snapshot
+          sendJSON req, res, doc.snapshot
     else
       if req.method == "HEAD"
         sendError res, error, true
@@ -108,8 +111,11 @@ getDocument = (req, res, client) ->
 
 getOperations = (req, res, client) ->
   client.getOps req.params.name, 0, null, (error, ops) ->
-    send200 res, JSON.stringify ops
+    send200 req, res, JSON.stringify ops
 
+getIframe = (req, res, client) ->
+    send200 req, res, iframe.content, 'text/html'
+  
 # Put is used to create a document. The contents are a JSON object with {type:TYPENAME, meta:{...}}
 putDocument = (req, res, client) ->
   expectJSONObject req, res, (obj) ->
@@ -123,7 +129,7 @@ putDocument = (req, res, client) ->
           if error
             sendError res, error
           else
-            send200 res
+            send200 req, res
 
 # POST submits an op to the document.
 postDocument = (req, res, client) ->
@@ -151,7 +157,7 @@ deleteDocument = (req, res, client) ->
     if error
       sendError res, error
     else
-      send200 res
+      send200 req, res
 
 routes = [
   {method: 'GET',    pattern: new RegExp("^/doc/(?:([^/]+?))/?$"),            func: getDocument},
