@@ -5,6 +5,7 @@
 http = require 'http'
 url  = require 'url'
 nameregexes = {}
+accessControlAllowOrigin = null
 
 send403 = (res, message = 'Forbidden\n') ->
   res.writeHead 403, {'Content-Type': 'text/plain'}
@@ -38,12 +39,16 @@ send400 = (res, message) ->
   res.writeHead 400, {'Content-Type': 'text/plain'}
   res.end message
 
-send200 = (res, message = "OK\n") ->
-  res.writeHead 200, {'Content-Type': 'text/plain'}
+send200 = (res, message = "OK\n", contentType = "text/plain") ->
+  headers = {'Content-Type': contentType}
+  headers['Access-Control-Allow-Origin'] = accessControlAllowOrigin if accessControlAllowOrigin != null
+  res.writeHead 200, headers
   res.end message
 
 sendJSON = (res, obj) ->
-  res.writeHead 200, {'Content-Type': 'application/json'}
+  headers = {'Content-Type': 'application/json'}
+  headers['Access-Control-Allow-Origin'] = accessControlAllowOrigin if accessControlAllowOrigin != null
+  res.writeHead 200, headers
   res.end JSON.stringify(obj) + '\n'
 
 # Callback is only called if the object was indeed JSON
@@ -165,6 +170,10 @@ makeDispatchHandler = (createClient, options) ->
   (req, res, next) ->
     urlParts = url.parse req.url
     pathname = urlParts.pathname.replace options.base, ""
+    if options.accessControlAllowOrigin?
+        accessControlAllowOrigin = options.accessControlAllowOrigin
+    else 
+        accessControlAllowOrigin = null
     matched = false
     for route in routes
       if req.method == route.method and match = pathname.match route.pattern
