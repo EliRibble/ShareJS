@@ -4,6 +4,8 @@
 
 http = require 'http'
 url  = require 'url'
+iframe = require './iframe'
+
 nameregexes = {}
 accessControlAllowOrigin = null
 
@@ -165,7 +167,8 @@ routes = [
   {method: 'PUT',    pattern: new RegExp("^/doc/(?:([^/]+?))/?$"),            func: putDocument},
   {method: 'POST',   pattern: new RegExp("^/doc/(?:([^/]+?))/?$"),            func: postDocument},
   {method: 'DELETE', pattern: new RegExp("^/doc/(?:([^/]+?))/?$"),            func: deleteDocument},
-  {method: 'GET',    pattern: new RegExp("^/doc/(?:([^/]+?))/operations/?$"), func: getOperations}
+  {method: 'GET',    pattern: new RegExp("^/doc/(?:([^/]+?))/operations/?$"), func: getOperations},
+  {method: 'GET',    pattern: new RegExp("^/iframe/$"),                       func: getIframe}
 ]
 
 # create a http request handler that is capable of routing request to the
@@ -185,6 +188,7 @@ makeDispatchHandler = (createClient, options) ->
       if req.method == route.method and match = pathname.match route.pattern
         req.params or= {}
         req.params.name = match[1]
+        req.params.urlparts = urlParts
         auth req, res, createClient, route.func
         matched = true
     if not matched
