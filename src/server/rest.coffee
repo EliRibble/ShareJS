@@ -84,6 +84,7 @@ auth = (req, res, createClient, cb) ->
   data =
     headers: req.headers
     remoteAddress: req.connection.remoteAddress
+    authentication: req.params.urlparts.query.authentication
 
   createClient data, (error, client) ->
     if client
@@ -177,7 +178,8 @@ routes = [
 # the document
 makeDispatchHandler = (createClient, options) ->
   (req, res, next) ->
-    urlParts = url.parse req.url
+    urlParts = url.parse req.url, true
+    urlBase  = options.base
     pathname = urlParts.pathname.replace options.base, ""
     if options.accessControlAllowOrigin?
         accessControlAllowOrigin = options.accessControlAllowOrigin
