@@ -85,6 +85,8 @@ auth = (req, res, createClient, cb) ->
     headers: req.headers
     remoteAddress: req.connection.remoteAddress
     authentication: req.params.urlparts.query.authentication
+    url: req.originalUrl
+    method: req.method
 
   createClient data, (error, client) ->
     if client

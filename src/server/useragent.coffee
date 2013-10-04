@@ -21,6 +21,8 @@ module.exports = (model, options) ->
       @headers = data.headers
       @remoteAddress = data.remoteAddress
       @authentication = data.authentication
+      @method = data.method
+      @url = data.url
       
       # This is a map from docName -> listener function
       @listeners = {}
