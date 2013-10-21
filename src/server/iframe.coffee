@@ -15,10 +15,10 @@ exports.content = '
     document.domain = base_domain;
     console.log("ShareJS iframe set domain to " + base_domain);
   </script>
-  <script src="/channel/bcsocket.js"></script>
-  <script src="/share/share.uncompressed.js"></script>
-  <script src="/share/json.js"></script>
-  <script src="/share/cm.js"></script>
+  <script src="../channel/bcsocket.js"></script>
+  <script src="../share/share.uncompressed.js"></script>
+  <script src="../share/json.js"></script>
+  <script src="../share/cm.js"></script>
  </head>
  <body>
     <h1>IFrame for cross-domain support.</h1>
