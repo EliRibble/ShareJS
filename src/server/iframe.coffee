@@ -13,7 +13,9 @@ exports.content = '
     }
     var base_domain = _stripSubdomain(window.location.href);
     document.domain = base_domain;
-    console.log("ShareJS iframe set domain to " + base_domain);
+    if(typeof console != "undefined" && typeof console.log != "undefined"){
+        console.log("ShareJS iframe set domain to " + base_domain);
+    }
   </script>
   <script src="../channel/bcsocket.js"></script>
   <script src="../share/share.uncompressed.js"></script>
