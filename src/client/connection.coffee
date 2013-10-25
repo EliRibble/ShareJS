@@ -41,6 +41,18 @@ class Connection
     # - 'stopped': The connection is closed, and will not reconnect.
     @state = 'connecting'
 
+    # knowing the connection latency is important for clients that need to calc
+    # the difference between client time and server time (such as chat clients)
+    @authRequestLatency = 0;
+    @clientServerTimeOffset = 0;
+    authRequestStart = null
+
+    @localTimeToServerTime = (localTime) =>
+        return localTime + @clientServerTimeOffset
+
+    @serverTimeToLocalTime = (serverTime) =>
+        return serverTime - @clientServerTimeOffset
+
     unless socketImpl?
       if host.match /^ws:/ then socketImpl = 'websocket'
 
@@ -60,6 +72,9 @@ class Connection
       else if msg.auth
         # Our very own client id.
         @id = msg.auth
+        authRequestEnd = Date.now()
+        @authRequestLatency = authRequestEnd - authRequestStart
+        @clientServerTimeOffset = (msg.timestamp - Date.now()) + @authRequestLatency
         @setState 'ok'
         return
 
@@ -90,6 +105,7 @@ class Connection
       #console.warn 'onopen'
 
       # Send authentication message
+      authRequestStart = Date.now()
       @send {
         auth: if authentication then authentication else null
       }

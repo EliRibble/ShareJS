@@ -350,7 +350,8 @@ exports.handler = (session, createAgent) ->
             agent = agent_
             console.log "Client #{agent.sessionId} connected"
             callback agent for callback in handlers['connected']
-            session.send auth:agent.sessionId
+            authmsg = { auth : agent.sessionId, timestamp : Date.now() }
+            session.send authmsg
 
           # Ok. Now we can handle all the messages in the buffer. They'll go straight to
           # handleMessage from now on.
