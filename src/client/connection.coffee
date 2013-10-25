@@ -72,9 +72,9 @@ class Connection
       else if msg.auth
         # Our very own client id.
         @id = msg.auth
-        authRequestEnd = Date.now()
+        authRequestEnd = new Date().getTime()
         @authRequestLatency = authRequestEnd - authRequestStart
-        @clientServerTimeOffset = (msg.timestamp - Date.now()) + @authRequestLatency
+        @clientServerTimeOffset = (msg.timestamp - new Date().getTime()) + @authRequestLatency
         @setState 'ok'
         return
 
@@ -105,7 +105,7 @@ class Connection
       #console.warn 'onopen'
 
       # Send authentication message
-      authRequestStart = Date.now()
+      authRequestStart = new Date().getTime()
       @send {
         auth: if authentication then authentication else null
       }
