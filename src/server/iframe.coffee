@@ -3,6 +3,7 @@ exports.content = '
 <html>
  <head>
   <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=8" />
   <title>ShareJS Same-Origin Bypass</title>
   <script>
     function _stripSubdomain(url){
