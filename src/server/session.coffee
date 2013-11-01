@@ -138,12 +138,26 @@ exports.handler = (session, createAgent) ->
         delete response.doc
       else
         lastSentDoc = response.doc
-
       
+      # IE cannot accept closing script tags anywhere in the response,
+      # so we clean it up before sending by replacing it with a named value
+      # the client API is responsible for replacing this value with the value </script>
+      ENDSCRIPT = 'd84dfef3-2a46-4ff7-bb26-0a978a6c5c5d'
+      cleanresponse = (response) ->
+        console?.log 'cleaning up response for IE'
+        dirty = JSON.stringify(response)
+        clean = dirty.replace(/<\/\s*script\s*>/g, ENDSCRIPT)
+        cleanResponse = JSON.parse(clean)
+        cleanResponse
+
       # Its invalid to send a message to a closed session. We'll silently drop messages if the
       # session has closed.
       if session.ready()
-        session.send response
+        if /MSIE/.test session.headers['user-agent']
+            cleanResponse = cleanresponse response
+        else
+            cleanResponse = response
+        session.send cleanResponse
 
     # Open the given document name, at the requested version.
     # callback(error, version)

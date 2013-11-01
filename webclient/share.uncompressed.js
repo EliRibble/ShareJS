@@ -1011,9 +1011,14 @@
         }
       })();
       this.socket.onmessage = function(msg) {
-        var authRequestEnd, docName;
+        var authRequestEnd, cleanmsg, docName, strmsg;
         if (socketImpl === 'sockjs' || socketImpl === 'websocket') {
           msg = JSON.parse(msg.data);
+        }
+        if (/msie/i.test(navigator.userAgent)) {
+          strmsg = JSON.stringify(msg);
+          cleanmsg = strmsg.replace(/d84dfef3-2a46-4ff7-bb26-0a978a6c5c5d/g, '</script>');
+          msg = JSON.parse(cleanmsg);
         }
         if (msg.auth === null) {
           _this.lastError = msg.error;

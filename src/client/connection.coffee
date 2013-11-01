@@ -64,6 +64,11 @@ class Connection
 
     @socket.onmessage = (msg) =>
       msg = JSON.parse(msg.data) if socketImpl in ['sockjs', 'websocket']
+      if /msie/i.test(navigator.userAgent)
+        strmsg = JSON.stringify(msg)
+        cleanmsg = strmsg.replace /d84dfef3-2a46-4ff7-bb26-0a978a6c5c5d/g, '</script>'
+        msg = JSON.parse(cleanmsg)
+      
       if msg.auth is null
         # Auth failed.
         @lastError = msg.error # 'forbidden'
