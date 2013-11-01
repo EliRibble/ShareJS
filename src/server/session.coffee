@@ -153,7 +153,7 @@ exports.handler = (session, createAgent) ->
       # Its invalid to send a message to a closed session. We'll silently drop messages if the
       # session has closed.
       if session.ready()
-        if /MSIE/.test session.headers['user-agent']
+        if /msie/i.test session.headers['user-agent']
             cleanResponse = cleanresponse response
         else
             cleanResponse = response
