@@ -41,6 +41,10 @@ module.exports =
     # Useragent hashing
     hat: "*"
 
+    # Amazon DB backend
+    "awssum-amazon-dynamodb": "1.3.0"
+    "awssum-amazon-s3": "1.4.0"
+
   # Developer dependencies
   devDependencies:
     # Example server

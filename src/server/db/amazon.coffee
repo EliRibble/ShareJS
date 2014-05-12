@@ -61,13 +61,13 @@ util = require('util')
 async = require('async')
 retry = require('retry')
 zlib = require('zlib')
-awssum = require('awssum')
 
-amazon = awssum.load('amazon/amazon')
+dynamodb = require('awssum-amazon-dynamodb')
+amazonS3 = require('awssum-amazon-s3')
 
 defaultOptions =
-  amazon_s3_region: amazon.US_EAST_1
-  amazon_dynamo_region: amazon.US_EAST_1
+  amazon_s3_region: amazonS3.US_EAST_1
+  amazon_dynamo_region: dynamodb.US_EAST_1
   timing: false
   compress: true
   s3_rw_concurrency: 1
@@ -281,14 +281,14 @@ module.exports = AmazonDb = (options) ->
   options ?= {}
   options[k] ?= v for k, v of defaultOptions
 
-  S3 = awssum.load('amazon/s3').S3
+  S3 = amazonS3.S3
   s3 = new S3({
     accessKeyId: options.amazon_access_key,
     secretAccessKey: options.amazon_secret_key,
     region: options.amazon_s3_region
   })
 
-  DynamoDB = awssum.load('amazon/dynamodb').DynamoDB
+  DynamoDB = dynamodb.DynamoDB
   db = new DynamoDB({
     accessKeyId: options.amazon_access_key,
     secretAccessKey: options.amazon_secret_key,
